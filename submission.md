@@ -82,3 +82,37 @@
   **HTTP Request → Route → Service → Database Models → Response**
 
 This separation keeps routing, business logic, and database access organized and easier to debug.
+
+## Issue #3 — The same song keeps showing up twice in search
+
+### How I reproduced it
+
+I started the Flask app and opened the search endpoint with the query `Anthem`:
+
+`GET /songs/search?q=Anthem`
+
+The endpoint is handled by `routes/songs.py`, which reads the `q` query parameter and calls `search_songs(query)` in `services/search_service.py`. The search response returned duplicate copies of the same matching song instead of listing each song once.
+
+## Issue #5 — The last song in a playlist never shows up
+
+### How I reproduced it
+
+I opened the playlist songs endpoint:
+
+`GET /playlists/<playlist_id>/songs`
+
+The route calls `get_playlist_songs(playlist_id)` in `services/playlist_service.py`. The playlist response returned one fewer song than expected. After checking the service function, I confirmed that the returned list excludes the final song in the ordered playlist.
+
+## Issue #4 — Rating notifications are not created
+
+### How I reproduced it
+
+I rated a song shared by another user using:
+
+`POST /songs/<song_id>/rate`
+
+with a JSON body containing a rater user ID and a score. The route in `routes/songs.py` calls `rate_song(user_id, song_id, int(score))`. The rating was saved successfully, but when I checked the original sharer's notifications with:
+
+`GET /users/<owner_id>/notifications`
+
+there was no notification for the rating.
