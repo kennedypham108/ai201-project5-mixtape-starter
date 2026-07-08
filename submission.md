@@ -121,6 +121,18 @@ The route calls `get_playlist_songs(playlist_id)` in `services/playlist_service.
 
 I rated a song shared by another user using:
 
+## How I found the root cause
+
+I traced the request from `routes/songs.py` into `rate_song()` inside `notification_service.py`. The function successfully created or updated a rating and committed it to the database. Unlike the playlist notification function, however, it never called `create_notification()`, which explained why no notification was generated.
+
+## The root cause
+
+The rating feature saved the rating correctly but never created a notification for the song owner. The notification logic existed elsewhere in the application but was never called after a rating was submitted.
+
+## My fix and side-effect check
+
+I added a call to `create_notification()` after successfully saving the rating. I also kept the existing behavior that prevents users from notifying themselves when rating their own songs. After testing, ratings continued to save correctly, and notifications were generated for the original song owner.
+
 `POST /songs/<song_id>/rate`
 
 with a JSON body containing a rater user ID and a score. The route in `routes/songs.py` calls `rate_song(user_id, song_id, int(score))`. The rating was saved successfully, but when I checked the original sharer's notifications with:
