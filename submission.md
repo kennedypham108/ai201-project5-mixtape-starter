@@ -89,6 +89,18 @@ This separation keeps routing, business logic, and database access organized and
 
 I started the Flask app and opened the search endpoint with the query `Anthem`:
 
+## How I found the root cause
+
+I traced the search request from `routes/songs.py` into `search_songs()` inside `search_service.py`. The query joined the songs table with the song tags table. Since a song can have multiple tags, the join produced multiple rows for the same song, causing duplicate search results.
+
+## The root cause
+
+The search query joined each song with its associated tags but did not remove duplicate rows before returning the results. Songs with multiple matching tag records therefore appeared multiple times.
+
+## My fix and side-effect check
+
+I added `.distinct()` to the SQLAlchemy query so each song is returned only once. I verified that duplicate search results disappeared while valid search results were still returned normally.
+
 `GET /songs/search?q=Anthem`
 
 The endpoint is handled by `routes/songs.py`, which reads the `q` query parameter and calls `search_songs(query)` in `services/search_service.py`. The search response returned duplicate copies of the same matching song instead of listing each song once.
