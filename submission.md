@@ -99,6 +99,18 @@ The endpoint is handled by `routes/songs.py`, which reads the `q` query paramete
 
 I opened the playlist songs endpoint:
 
+## How I found the root cause
+
+I started from the playlist route in `routes/playlists.py`, which calls `get_playlist_songs()` in `services/playlist_service.py`. I traced the function until I found the return statement. The query correctly retrieved every song in the playlist, but the final return statement sliced the list with `songs[:-1]`, removing the last song before returning the results.
+
+## The root cause
+
+The playlist query correctly returned every song, but the code used Python list slicing (`songs[:-1]`) when building the response. Since `[:-1]` excludes the final element of the list, the newest song was always omitted from the API response.
+
+## My fix and side-effect check
+
+I removed the list slice and returned the entire list using `songs` instead of `songs[:-1]`. After the change, every song in the playlist was returned in the correct order, including the newest song. I also verified that the ordering of songs remained unchanged.
+
 `GET /playlists/<playlist_id>/songs`
 
 The route calls `get_playlist_songs(playlist_id)` in `services/playlist_service.py`. The playlist response returned one fewer song than expected. After checking the service function, I confirmed that the returned list excludes the final song in the ordered playlist.
