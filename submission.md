@@ -152,3 +152,9 @@ with a JSON body containing a rater user ID and a score. The route in `routes/so
 `GET /users/<owner_id>/notifications`
 
 there was no notification for the rating.
+
+## AI Usage
+
+I used AI tools to help me understand the unfamiliar codebase, trace route-to-service data flow, and organize my root cause analysis. I used AI to summarize the responsibilities of route files, service files, and database models. During debugging, I used AI to compare similar code paths, especially the playlist notification path and the rating path, so I could identify where expected logic was missing.
+
+I verified the fixes myself by reading the actual service functions and checking the app behavior after each change. I did not rely only on AI guesses; I traced each bug from the endpoint to the service function and confirmed the root cause in the code before committing the fix.
